@@ -11,7 +11,13 @@ app.use(bodyParser.json());
 mongoose.Promise = global.Promise;
 
 app.get('/api/posts', async (req, res) => {
-    res.json({ message: 'List' });
+    try {
+        const posts = await Post.find();
+        res.json(posts);
+    }
+    catch(error) {
+        res.status(500).send(error);
+    }
 });
 
 app.get('/api/posts/:id', async (req, res) => {
@@ -67,15 +73,23 @@ app.get('/api/posts/user/:id', async (req, res) => {
 })
 
 app.put('/api/posts/:id', async (req, res) => {
-    res.json({ message: 'Update' });
+    try {
+        const post = await Post.find({postId: req.params.id});
+        Object.assign(post, req.body);
+        await post.save();
+        res.status(200).json(post);
+    } catch (error) {
+        res.status(500).send(error);
+    }
 });
 
 app.delete('/api/posts/:id', async (req, res) => {
-    res.json({ message: 'Delete' });
-});
-
-app.get('/api/posts/user/:id', async (req, res) => {
-    res.json({ message: 'By user' });
+    try {
+        await Post.deleteOne({_id: req.params.id});
+        res.status(200).json({"message": "Post deleted"});
+    } catch (error) {
+        res.status(500).send(error);
+    }
 });
 
 app.listen(port, async () => {
